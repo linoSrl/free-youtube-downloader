@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 from flask_cors import CORS
 import yt_dlp
 import os
@@ -16,17 +16,21 @@ def build_format(quality):
         return "best[height<=1080]"
     return "best"
 
+
 @app.route("/")
 def home():
-    return "API is running"
+    return render_template("index.html")
+
 
 @app.route("/health")
 def health():
     return jsonify({"status": "ok"})
 
+
 @app.route("/download", methods=["POST"])
 def download():
     data = request.get_json(silent=True) or {}
+
     url = data.get("url")
     quality = data.get("quality", "best")
 
@@ -51,3 +55,7 @@ def download():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
