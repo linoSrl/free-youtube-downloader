@@ -1,5 +1,22 @@
-from flask import send_file
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+import yt_dlp
+import os
 import tempfile
+
+app = Flask(__name__)
+CORS(app)
+
+
+def build_format(quality):
+    if quality == "audio":
+        return "bestaudio"
+    elif quality == "720":
+        return "best[height<=720]"
+    elif quality == "1080":
+        return "best[height<=1080]"
+    return "best"
+
 
 @app.route("/download", methods=["POST"])
 def download():
@@ -28,3 +45,7 @@ def download():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+if __name__ == "__main__":
+    app.run()
