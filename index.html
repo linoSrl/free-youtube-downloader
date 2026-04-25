@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Téléchargement YouTube</title>
+  <style>
+    :root {
+      --bg: #0f1220;
+      --card: #171b2e;
+      --text: #eef2ff;
+      --muted: #a9b2d6;
+      --line: rgba(255,255,255,.08);
+      --accent: #7c8cff;
+      --ok: #34d399;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0a0d18 0%, var(--bg) 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .box {
+      width: min(520px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    label {
+      display: block;
+      margin: 14px 0 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    input, select, button {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: 15px;
+      outline: none;
+    }
+    input, select {
+      background: #0e1220;
+      color: var(--text);
+    }
+    input:focus, select:focus {
+      border-color: rgba(124,140,255,.8);
+      box-shadow: 0 0 0 4px rgba(124,140,255,.15);
+    }
+    button {
+      margin-top: 18px;
+      background: linear-gradient(135deg, var(--accent), #5eead4);
+      color: #08101c;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    .note {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .status {
+      margin-top: 12px;
+      min-height: 22px;
+      font-size: 13px;
+      color: var(--ok);
+      white-space: pre-wrap;
+    }
+    .tiny {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    code { color: #d8e1ff; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Téléchargement YouTube</h1>
+    <p>Interface ultra simple. Colle un lien, choisis la qualité, puis lance le téléchargement. Le fichier sera enregistré dans le dossier <code>Téléchargements</code> via un petit serveur local.</p>
+
+    <label for="url">Lien YouTube</label>
+    <input id="url" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+
+    <label for="quality">Qualité</label>
+    <select id="quality">
+      <option value="best">Meilleure qualité</option>
+      <option value="2160">4K</option>
+      <option value="1080">1080p</option>
+      <option value="720">720p</option>
+      <option value="480">480p</option>
+      <option value="audio">Audio seulement</option>
+    </select>
+
+    <button id="downloadBtn">Télécharger</button>
+
+    <div class="status" id="status"></div>
+
+    <div class="note">
+      Cette page ne télécharge pas toute seule depuis le navigateur. Elle envoie le lien à un serveur local sur ton ordinateur, et c’est ce serveur qui enregistre le fichier dans <strong>Téléchargements</strong>.
+    </div>
+
+    <div class="tiny">Serveur attendu : <code>http://localhost:5000/download</code></div>
+  </div>
+
+  <script>
+    const urlInput = document.getElementById('url');
+    const qualityInput = document.getElementById('quality');
+    const statusBox = document.getElementById('status');
+    const btn = document.getElementById('downloadBtn');
+
+    btn.addEventListener('click', async () => {
+      const url = urlInput.value.trim();
+      const quality = qualityInput.value;
+
+      if (!url) {
+        statusBox.textContent = 'Entre un lien YouTube.';
+        return;
+      }
+
+      statusBox.textContent = 'Envoi de la demande...';
+
+      try {
+        const res = await fetch('/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, quality })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          statusBox.textContent = data.message || 'Téléchargement lancé.';
+        } else {
+          statusBox.textContent = data.error || 'Erreur inconnue.';
+        }
+      } catch (err) {
+        statusBox.textContent = 'Impossible de joindre le serveur local. Lance d’abord le backend Python.';
+      }
+    });
+  </script>
+</body>
+</html>
