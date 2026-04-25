@@ -7,20 +7,26 @@ import tempfile
 app = Flask(__name__)
 CORS(app)
 
-
 def build_format(quality):
     if quality == "audio":
         return "bestaudio"
-    elif quality == "720":
+    if quality == "720":
         return "best[height<=720]"
-    elif quality == "1080":
+    if quality == "1080":
         return "best[height<=1080]"
     return "best"
 
+@app.route("/")
+def home():
+    return "API is running"
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
 
 @app.route("/download", methods=["POST"])
 def download():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     url = data.get("url")
     quality = data.get("quality", "best")
 
@@ -45,7 +51,3 @@ def download():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-if __name__ == "__main__":
-    app.run()
